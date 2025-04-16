@@ -1,0 +1,66 @@
+plugins {
+    id 'java'
+    id 'idea'
+}
+
+repositories {
+    mavenCentral()
+    maven { url = "https://repo.papermc.io/repository/maven-public/" }
+    maven { url = "https://repo.codemc.io/repository/maven-public/" }
+}
+
+ext {
+    quickShopVer = '6.1.0.0-SNAPSHOT'
+}
+
+dependencies {
+    compileOnly "io.papermc.paper:paper-api:1.21.5-R0.1-SNAPSHOT"
+    compileOnly fileTree('libs') { include '*.jar' }
+
+    compileOnly "com.ghostchu:simplereloadlib:1.1.2"
+    compileOnly "com.ghostchu:quickshop-bukkit:$quickShopVer"
+    compileOnly "com.ghostchu:quickshop-api:$quickShopVer"
+}
+
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+}
+
+idea {
+    module {
+        downloadJavadoc(true)
+    }
+}
+
+jar {
+    archiveBaseName.set(rootProject.name)
+    archiveVersion.set(pluginVersion)
+    archiveClassifier.set(null)
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+tasks.named("processResources") {
+    filesMatching("plugin.yml") {
+        expand([
+                version: pluginVersion,
+                plugin : rootProject.name
+        ])
+    }
+}
+
+tasks.register('runServer') {
+    dependsOn(build)
+    doLast {
+        def pathToServer = new File("D:/DevCraft")
+        def pluginFileName = project.name + "-" + pluginVersion + ".jar"
+        ant.move(file: buildDir.getAbsolutePath() + "/libs/" + pluginFileName, tofile: pathToServer.toString() + "/plugins/" + pluginFileName)
+
+        new ProcessBuilder()
+                .command("cmd.exe", "/c", "start", "RUN.bat")
+                .directory(pathToServer)
+                .start()
+    }
+}

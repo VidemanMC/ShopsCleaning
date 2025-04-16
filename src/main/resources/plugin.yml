@@ -1,0 +1,8 @@
+main: "ru.videmanmc.${plugin.toLowerCase()}.${plugin}"
+name: ${plugin}
+version: ${version}
+api-version: 1.13
+depend:
+  - Residence
+  - QuickShop-Hikari
+author: WhiteLight
