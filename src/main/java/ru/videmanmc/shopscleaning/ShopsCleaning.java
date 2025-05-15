@@ -11,11 +11,22 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 import static com.bekvon.bukkit.residence.event.ResidenceRentEvent.RentEventType.RENT_EXPIRE;
-import static com.bekvon.bukkit.residence.event.ResidenceRentEvent.RentEventType.UNRENTABLE;
 
+@SuppressWarnings("unused")
 public class ShopsCleaning extends JavaPlugin implements Listener {
+
+    private final Predicate<ClaimedResidence> isAutoPayable = residence -> {
+        var rentedLand = residence.getRentedLand();
+        var autoPayEnabled = rentedLand != null && rentedLand.AutoPay;
+
+        var rentable = residence.getRentable();
+        var autoPayAllowed = rentable != null && rentable.AllowAutoPay;
+
+        return autoPayEnabled || autoPayAllowed;
+    };
 
     @Override
     public void onEnable() {
@@ -27,7 +38,13 @@ public class ShopsCleaning extends JavaPlugin implements Listener {
         if (!RENT_EXPIRE.equals(e.getCause())) {
             return;
         }
-        deleteShopsInResidence(e.getResidence());
+
+        var residence = e.getResidence();
+        if (isAutoPayable.test(residence)) {
+            return;
+        }
+
+        deleteShopsInResidence(residence);
     }
 
     private void deleteShopsInResidence(ClaimedResidence residence) {
